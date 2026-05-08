@@ -207,6 +207,19 @@ export default function StockManagement() {
 
   const handleIssue = async () => {
     if (!user || !issueProductCodeId || !issueClientId || !issueQuantity) return;
+
+    // Block over-issue: validate against computed available stock
+    const stock = summaries.find((s) => s.product_code_id === issueProductCodeId);
+    const qtyNum = Number(issueQuantity);
+    if (stock && qtyNum > stock.available) {
+      toast({
+        title: "Insufficient stock",
+        description: `Only ${stock.available.toLocaleString()} ${stock.unit} available`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIssuing(true);
 
     const { error } = await supabase.from("stock_issues").insert({
