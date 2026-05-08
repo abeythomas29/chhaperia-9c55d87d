@@ -1,35 +1,38 @@
-## Problem
+## Goal
+Prevent finished-product stock from going negative by validating at the point of issue/sale. Existing negative balances will surface naturally as users correct entries.
 
-The `handle_new_user` database trigger is missing in the Live environment. This trigger should fire on every new signup and automatically create a row in the `profiles` table. Without it:
-- Users sign up successfully (auth record created) but get no profile
-- They see "waiting for approval" because the admin panel only shows users with profiles
-- Re-signing up shows "user already registered"
+## Where negatives originate
+Available stock is computed as: `produced (production_entries) − issued (stock_issues + finished-product sales)`. Negatives appear when:
+1. A **Sale** of a finished product is recorded for more than what's available.
+2. A **Stock Issue** (admin Stock Management) is recorded for more than what's available.
 
-17 users in Live have auth accounts but no profiles.
+There is no validation in either form today.
 
-## Plan
+## Changes
 
-### Step 1: Re-create the trigger via migration
+### 1. `src/pages/inventory/SalesEntry.tsx` (finished products)
+- Before submit, when `tab === "finished_product"`, fetch current available stock for the selected `product_code_id`:
+  - Sum `total_quantity` from `production_entries` for that product.
+  - Subtract sum of `quantity` from `stock_issues` for that product.
+  - Subtract sum of `quantity` from `sales` where `item_type='finished_product'` for that product.
+- If `entered quantity > available`, show toast error ("Only X available") and abort insert.
+- Also display "Available: X unit" inline under the product selector for visibility.
 
-Run a migration that:
-- Creates the trigger `on_auth_user_created` on `auth.users` AFTER INSERT, calling `handle_new_user()`
-- The function already exists in Live, only the trigger is missing
+Raw-material sales already deduct via DB trigger from `raw_materials.current_stock`; add a parallel check there too — block sale if `quantity > raw_materials.current_stock`.
 
-### Step 2: Backfill missing profiles in Live
+### 2. `src/pages/admin/StockManagement.tsx` (issue dialog)
+- Available is already computed in `summaries`. Before inserting into `stock_issues`, look up the selected product's `available` and reject if `issueQuantity > available` with a toast.
+- Keep the existing inline "Available" display.
 
-Insert profiles for the 17 orphaned auth users using their `raw_user_meta_data` (name, employee_id, requested_department). This will make them immediately visible in the admin panel for approval.
+### 3. Shared helper (optional, light)
+Add a tiny utility `src/lib/stock.ts` with `getFinishedProductAvailable(productCodeId)` that runs the three queries above, so both forms use the same logic. Keeps drift between the two screens out.
 
-Key users that will be fixed:
-- `abhishek@chhaperia.com`
-- `slitting@chhaperia.com`
-- And 15 other test/legacy accounts
+## Out of scope (per user choice "Block over-issue at source")
+- No display clamping in InventoryView — real numbers stay visible so admins can see existing discrepancies.
+- No DB-level CHECK/trigger enforcement (would require backfill of current negatives first).
+- No audit/report screen for currently-negative items.
 
-### Step 3: Capacitor Android app
-
-The Android app issue is separate — it's pointing to the Test/preview URL. You'll need to update `server.url` in your local Capacitor config to `https://chhaperia.micagroup.net` and run `npx cap sync` to use the Live database.
-
-## Technical Details
-
-- Migration: `CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();`
-- Backfill: INSERT into profiles using data from `auth.users.raw_user_meta_data`
-- No code changes needed — the app logic is correct, just the trigger was missing
+## Validation
+- Try to record a sale/issue larger than available → blocked with toast.
+- Record one within available → succeeds; available decreases on the InventoryView refresh.
+- Raw-material sale exceeding `current_stock` → blocked.
