@@ -29,6 +29,7 @@ interface ProductCode {
 export default function Products() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [codes, setCodes] = useState<ProductCode[]>([]);
+  const [stockMap, setStockMap] = useState<Record<string, { available: number; unit: string }>>({});
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [newCategory, setNewCategory] = useState("");
   const [newCode, setNewCode] = useState("");
@@ -56,12 +57,36 @@ export default function Products() {
   const { toast } = useToast();
 
   const fetchData = async () => {
-    const [catRes, codeRes] = await Promise.all([
+    const [catRes, codeRes, prodRes, issueRes, saleRes] = await Promise.all([
       supabase.from("product_categories").select("*").order("name"),
       supabase.from("product_codes").select("*, product_categories(name)").order("code"),
+      supabase.from("production_entries").select("product_code_id, total_quantity, rolls_count, quantity_per_roll, unit").limit(5000),
+      supabase.from("stock_issues").select("product_code_id, quantity").limit(5000),
+      supabase.from("sales").select("product_code_id, quantity").eq("item_type", "finished_product").limit(5000),
     ]);
     setCategories(catRes.data ?? []);
     setCodes((codeRes.data as unknown as ProductCode[]) ?? []);
+
+    const map: Record<string, { available: number; unit: string }> = {};
+    for (const p of (prodRes.data ?? []) as any[]) {
+      const qty = Number(p.total_quantity ?? Number(p.rolls_count) * Number(p.quantity_per_roll));
+      const cur = map[p.product_code_id] ?? { available: 0, unit: p.unit ?? "meters" };
+      cur.available += Number.isFinite(qty) ? qty : 0;
+      cur.unit = p.unit ?? cur.unit;
+      map[p.product_code_id] = cur;
+    }
+    for (const i of (issueRes.data ?? []) as any[]) {
+      const cur = map[i.product_code_id] ?? { available: 0, unit: "meters" };
+      cur.available -= Number(i.quantity ?? 0);
+      map[i.product_code_id] = cur;
+    }
+    for (const s of (saleRes.data ?? []) as any[]) {
+      if (!s.product_code_id) continue;
+      const cur = map[s.product_code_id] ?? { available: 0, unit: "meters" };
+      cur.available -= Number(s.quantity ?? 0);
+      map[s.product_code_id] = cur;
+    }
+    setStockMap(map);
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -346,7 +371,16 @@ export default function Products() {
                     {c.status}
                   </Badge>
                 </div>
-                <p className="font-semibold text-sm mb-3">{c.code}</p>
+                <p className="font-semibold text-sm mb-1">{c.code}</p>
+                {(() => {
+                  const s = stockMap[c.id];
+                  const avail = s?.available ?? 0;
+                  return (
+                    <p className={`text-xs mb-3 font-mono ${avail > 0 ? "text-secondary" : "text-muted-foreground"}`}>
+                      Available: <span className="font-semibold">{avail.toLocaleString()}</span> {s?.unit ?? ""}
+                    </p>
+                  );
+                })()}
                 <div className="flex items-center gap-1 pt-2 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditCode(c)}>
                     <Pencil className="h-3.5 w-3.5" />
