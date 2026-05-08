@@ -371,7 +371,16 @@ export default function Products() {
                     {c.status}
                   </Badge>
                 </div>
-                <p className="font-semibold text-sm mb-3">{c.code}</p>
+                <p className="font-semibold text-sm mb-1">{c.code}</p>
+                {(() => {
+                  const s = stockMap[c.id];
+                  const avail = s?.available ?? 0;
+                  return (
+                    <p className={`text-xs mb-3 font-mono ${avail > 0 ? "text-secondary" : "text-muted-foreground"}`}>
+                      Available: <span className="font-semibold">{avail.toLocaleString()}</span> {s?.unit ?? ""}
+                    </p>
+                  );
+                })()}
                 <div className="flex items-center gap-1 pt-2 border-t border-border opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditCode(c)}>
                     <Pencil className="h-3.5 w-3.5" />
