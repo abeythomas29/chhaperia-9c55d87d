@@ -11,6 +11,7 @@ import { CheckCircle, ShoppingCart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getFinishedProductAvailable } from "@/lib/stock";
 
 interface RawMaterial { id: string; name: string; unit: string; current_stock: number; }
 interface ProductCode { id: string; code: string; }
@@ -119,6 +120,31 @@ export default function SalesEntry() {
     }
 
     setSubmitting(true);
+
+    // Block over-issue: validate available stock before insert
+    const qtyNum = Number(quantity);
+    if (tab === "raw_material" && selectedMaterial && qtyNum > Number(selectedMaterial.current_stock)) {
+      toast({
+        title: "Insufficient stock",
+        description: `Only ${Number(selectedMaterial.current_stock).toLocaleString()} ${selectedMaterial.unit} available`,
+        variant: "destructive",
+      });
+      setSubmitting(false);
+      return;
+    }
+    if (tab === "finished_product") {
+      const available = await getFinishedProductAvailable(productId);
+      if (qtyNum > available) {
+        toast({
+          title: "Insufficient stock",
+          description: `Only ${available.toLocaleString()} ${unit} available for this product`,
+          variant: "destructive",
+        });
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const { error } = await supabase.from("sales").insert({
       date,
       client_id: useManualClient ? null : clientId,
