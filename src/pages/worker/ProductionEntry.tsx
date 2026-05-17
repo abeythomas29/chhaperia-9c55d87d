@@ -46,13 +46,19 @@ export default function ProductionEntry() {
     quantity_per_roll: "",
     unit: "meters",
     thickness_mm: "",
+    gsm: "",
     notes: "",
     swelling_speed: "",
     swelling_height: "",
     tensile_strength: "",
     elongation: "",
     surface_resistance: "",
+    lab_report_included: false,
+    raw_material_included: false,
   });
+
+  // Rope multi-thickness rows (only used when category is Rope)
+  const [thicknessRows, setThicknessRows] = useState<ThicknessRow[]>([]);
 
   const [newProductCode, setNewProductCode] = useState("");
   const [newProductCat, setNewProductCat] = useState("");
