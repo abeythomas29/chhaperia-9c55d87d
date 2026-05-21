@@ -473,7 +473,6 @@ export default function ProductionEntry() {
               </div>
             );
           })()}
-          </div>
 
 
          <div>
