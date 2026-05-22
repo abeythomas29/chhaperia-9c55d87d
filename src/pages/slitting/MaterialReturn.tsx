@@ -35,9 +35,8 @@ export default function MaterialReturn() {
     const { data: entryData } = await supabase
       .from("slitting_entries")
       .select("id, date, source_quantity, cut_quantity_produced, unit, product_codes(code)")
-      .eq("slitting_manager_id", user.id)
       .order("date", { ascending: false })
-      .limit(50);
+      .limit(100);
     setEntries((entryData as unknown as SlittingRow[]) ?? []);
 
     const { data: retData } = await supabase
