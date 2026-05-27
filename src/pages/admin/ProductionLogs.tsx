@@ -322,6 +322,7 @@ export default function ProductionLogs() {
               <TableHead className="text-right">Total</TableHead>
               <TableHead>Unit</TableHead>
               <TableHead className="text-right">Thickness (mm)</TableHead>
+              <TableHead>Lab Report</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
