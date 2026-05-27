@@ -361,18 +361,17 @@ export default function ProductionLogs() {
               <TableHead className="text-right">Total</TableHead>
               <TableHead>Unit</TableHead>
               <TableHead className="text-right">Thickness (mm)</TableHead>
-              <TableHead>Lab Report</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">Loading...</TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-8 text-muted-foreground">No entries found</TableCell>
+                <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">No entries found</TableCell>
               </TableRow>
             ) : (
               filtered.map((e) => (
