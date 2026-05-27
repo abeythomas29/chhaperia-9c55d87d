@@ -225,7 +225,7 @@ export default function SlittingEntryForm() {
             </Select>
           </div>
 
-          <div className="bg-muted rounded-lg p-4 grid grid-cols-3 gap-3 text-center">
+          <div className="bg-muted rounded-lg p-4 grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
             <div>
               <p className="text-xs text-muted-foreground">Total Rolls</p>
               <p className="text-xl font-bold text-primary">{totalRolls.toLocaleString()}</p>
@@ -238,7 +238,14 @@ export default function SlittingEntryForm() {
               <p className="text-xs text-muted-foreground">Total (sqm)</p>
               <p className="text-xl font-bold text-primary">{totalProduction.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-normal">sqm</span></p>
             </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Total (kg)</p>
+              <p className="text-xl font-bold text-primary">{totalKg.toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm font-normal">kg</span></p>
+            </div>
           </div>
+          {gsm <= 0 && form.source_unit !== "kg" && (
+            <p className="text-xs text-muted-foreground -mt-2 text-center">Enter GSM (or use kg source) to see total kg.</p>
+          )}
 
           <div className="space-y-2">
             <Label>Notes / Remarks</Label>
