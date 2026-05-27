@@ -389,7 +389,6 @@ export default function ProductionLogs() {
                   <TableCell>{e.unit}</TableCell>
                   <TableCell className="text-right">{e.thickness_mm ?? "—"}</TableCell>
                   <TableCell>
-                  <TableCell>
                     {(() => {
                       const parseNote = (label: string) => {
                         if (!e.notes) return null;
@@ -409,6 +408,16 @@ export default function ProductionLogs() {
                         </Button>
                       );
                     })()}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(e)} title="Edit">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleteId(e.id)} title="Delete" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
