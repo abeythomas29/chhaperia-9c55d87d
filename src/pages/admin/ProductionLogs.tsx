@@ -83,6 +83,9 @@ export default function ProductionLogs() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Lab report dialog
+  const [labEntry, setLabEntry] = useState<LogEntry | null>(null);
+
   // Dropdowns
   const [productCodes, setProductCodes] = useState<ProductCode[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
