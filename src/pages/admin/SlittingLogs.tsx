@@ -223,6 +223,11 @@ export default function SlittingLogs() {
                           <Sigma className="h-4 w-4" />
                         </Button>
                       </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(e.id)} title="Delete" className="text-destructive hover:text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
