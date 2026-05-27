@@ -97,6 +97,7 @@ export default function SlittingEntryForm() {
       cut_width_mm: parseFloat(r.width_mm),
       remaining_returned: 0,
       thickness_mm: form.thickness_mm ? parseFloat(form.thickness_mm) : null,
+      gsm: form.gsm ? parseFloat(form.gsm) : null,
       unit: form.unit,
       notes: [form.notes, `Roll ${idx + 1} of ${validRollRows.length}`, sourceNote, form.gsm ? `GSM: ${form.gsm}` : ""].filter(Boolean).join(" | "),
       slitting_manager_id: user.id,
