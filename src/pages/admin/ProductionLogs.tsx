@@ -409,6 +409,9 @@ export default function ProductionLogs() {
                               <FlaskConical className="h-4 w-4" />
                             </Button>
                           )}
+                          <Button variant="ghost" size="icon" onClick={() => setTotalsEntry(e)} title="View Totals" className="text-primary hover:text-primary">
+                            <Sigma className="h-4 w-4" />
+                          </Button>
                           <Button variant="ghost" size="icon" onClick={() => openEdit(e)} title="Edit">
                             <Pencil className="h-4 w-4" />
                           </Button>
