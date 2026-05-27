@@ -65,6 +65,10 @@ export default function SlittingEntryForm() {
     : 0;
   const totalProduction = totalSqm || sqmFromGsm;
   const totalLength = rollLength * totalRolls;
+  // kg = sqm * gsm / 1000  (if gsm provided); otherwise fall back to source qty when source is kg
+  const totalKg = gsm > 0 && totalProduction > 0
+    ? (totalProduction * gsm) / 1000
+    : (form.source_unit === "kg" ? sourceQty : 0);
 
   const updateRollRow = (i: number, patch: Partial<RollRow>) =>
     setRollRows((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
