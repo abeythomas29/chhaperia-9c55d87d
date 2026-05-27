@@ -115,7 +115,13 @@ export default function SlittingEntryForm() {
       slitting_manager_id: user.id,
     }));
 
-    const { error } = await supabase.from("slitting_entries").insert(rowsToInsert as any);
+    let { error } = await supabase.from("slitting_entries").insert(rowsToInsert as any);
+
+    if (error?.code === "PGRST204" && error.message.includes("'gsm' column")) {
+      const fallbackRows = rowsToInsert.map(({ gsm, ...row }) => row);
+      const fallbackResult = await supabase.from("slitting_entries").insert(fallbackRows as any);
+      error = fallbackResult.error;
+    }
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
