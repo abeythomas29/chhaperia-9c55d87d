@@ -33,13 +33,18 @@ interface LogEntry {
   swelling_speed: number | null;
   surface_resistance: number | null;
   notes: string | null;
-  product_codes: { code: string } | null;
+  product_codes: { code: string; category_id: string | null } | null;
   profiles: { name: string } | null;
 }
 
 interface ProductCode {
   id: string;
   code: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
 }
 
 interface Client {
@@ -50,6 +55,8 @@ interface Client {
 export default function ProductionLogs() {
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Date range filter
@@ -83,8 +90,8 @@ export default function ProductionLogs() {
   const fetchEntries = async () => {
     setLoading(true);
 
-    const fullSelect = "id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, notes, gsm, tensile_strength, elongation, swelling_height, swelling_speed, surface_resistance, product_codes(code), profiles:worker_id(name)";
-    const basicSelect = "id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, notes, product_codes(code), profiles:worker_id(name)";
+    const fullSelect = "id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, notes, gsm, tensile_strength, elongation, swelling_height, swelling_speed, surface_resistance, product_codes(code, category_id), profiles:worker_id(name)";
+    const basicSelect = "id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, notes, product_codes(code, category_id), profiles:worker_id(name)";
 
     let { data, error } = await supabase
       .from("production_entries")
@@ -114,12 +121,14 @@ export default function ProductionLogs() {
   };
 
   const fetchDropdowns = async () => {
-    const [{ data: pc }, { data: cl }] = await Promise.all([
+    const [{ data: pc }, { data: cl }, { data: cats }] = await Promise.all([
       supabase.from("product_codes").select("id, code").eq("status", "active").order("code"),
       supabase.from("company_clients").select("id, name").eq("status", "active").order("name"),
+      supabase.from("product_categories").select("id, name").eq("status", "active").order("name"),
     ]);
     setProductCodes(pc ?? []);
     setClients(cl ?? []);
+    setCategories(cats ?? []);
   };
 
   useEffect(() => {
@@ -137,8 +146,9 @@ export default function ProductionLogs() {
     const entryDate = new Date(e.date);
     const matchesFrom = !dateFrom || entryDate >= dateFrom;
     const matchesTo = !dateTo || entryDate <= dateTo;
+    const matchesCategory = categoryFilter === "all" || e.product_codes?.category_id === categoryFilter;
 
-    return matchesSearch && matchesFrom && matchesTo;
+    return matchesSearch && matchesFrom && matchesTo && matchesCategory;
   });
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((e) => selectedIds.has(e.id));
@@ -291,6 +301,18 @@ export default function ProductionLogs() {
             className="pl-9"
           />
         </div>
+
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="All categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Popover>
           <PopoverTrigger asChild>
