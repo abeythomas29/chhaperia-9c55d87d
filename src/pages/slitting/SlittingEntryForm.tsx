@@ -75,9 +75,9 @@ export default function SlittingEntryForm() {
   const addRollRow = () => setRollRows((rows) => [...rows, { width_mm: "", rolls_count: "" }]);
   const removeRollRow = (i: number) => setRollRows((rows) => rows.filter((_, idx) => idx !== i));
 
-  const producedInSourceUnit =
-    form.source_unit === "kg" ? totalKg : form.source_unit === "sqm" ? totalSqm : totalLength;
-  const exceedsSource = sourceQty > 0 && producedInSourceUnit > sourceQty + 1e-6;
+  // Area (sqm) is conserved when slitting — total meters can be more than source
+  // because narrower cuts produce multiple parallel tapes. So validate by area.
+  const exceedsSource = sourceSqm > 0 && totalSqm > sourceSqm + 1e-6;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,8 +92,8 @@ export default function SlittingEntryForm() {
     }
     if (exceedsSource) {
       toast({
-        title: "Produced exceeds source",
-        description: `Produced (${producedInSourceUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${form.source_unit}) cannot be greater than source (${sourceQty.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${form.source_unit}).`,
+        title: "Produced area exceeds source",
+        description: `Produced area (${totalSqm.toLocaleString(undefined, { maximumFractionDigits: 2 })} sqm) cannot exceed source area (${sourceSqm.toLocaleString(undefined, { maximumFractionDigits: 2 })} sqm).`,
         variant: "destructive",
       });
       return;
