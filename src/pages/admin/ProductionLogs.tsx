@@ -82,12 +82,25 @@ export default function ProductionLogs() {
   const fetchEntries = async () => {
     setLoading(true);
 
-    // Try with thickness_mm first; fall back without it if column doesn't exist yet
+    const fullSelect = "id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, gsm, tensile_strength, elongation, swelling_height, swelling_speed, surface_resistance, product_codes(code), profiles:worker_id(name)";
+    const basicSelect = "id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, product_codes(code), profiles:worker_id(name)";
+
     let { data, error } = await supabase
       .from("production_entries")
-      .select("id, date, rolls_count, quantity_per_roll, total_quantity, unit, thickness_mm, product_code_id, client_id, gsm, tensile_strength, elongation, swelling_height, swelling_speed, surface_resistance, product_codes(code), profiles:worker_id(name)")
+      .select(fullSelect)
       .order("date", { ascending: false })
       .limit(500);
+
+    if (error) {
+      // Fall back if lab columns don't exist in this DB
+      const fallback = await supabase
+        .from("production_entries")
+        .select(basicSelect)
+        .order("date", { ascending: false })
+        .limit(500);
+      data = fallback.data as any;
+      error = fallback.error;
+    }
 
     if (error) {
       toast({ title: "Failed to load production logs", description: error.message, variant: "destructive" });
