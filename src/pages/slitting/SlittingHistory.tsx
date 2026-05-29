@@ -194,6 +194,7 @@ export default function SlittingHistory() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-8"></TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Product</TableHead>
                   <TableHead>Cut Width</TableHead>
@@ -209,8 +210,16 @@ export default function SlittingHistory() {
                 {entries.map((e) => {
                   const t = computeTotals(e);
                   const displayNotes = (e.notes ?? "").split("|").map((s) => s.trim()).filter((s) => s && !/^gsm\s*[:\-]/i.test(s)).join(" | ");
+                  const isExpanded = expandedId === e.id;
+                  const head36 = head36Map[e.id] ?? [];
                   return (
+                    <>
                     <TableRow key={e.id}>
+                      <TableCell className="p-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => toggleExpand(e.id)} title="Show 36 Head production">
+                          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </Button>
+                      </TableCell>
                       <TableCell>{format(new Date(e.date), "dd/MM/yy")}</TableCell>
                       <TableCell className="font-medium">{e.product_codes?.code ?? "—"}</TableCell>
                       <TableCell>{e.cut_width_mm} mm</TableCell>
@@ -230,6 +239,46 @@ export default function SlittingHistory() {
                         </div>
                       </TableCell>
                     </TableRow>
+                    {isExpanded && (
+                      <TableRow key={e.id + "-h36"} className="bg-muted/40 hover:bg-muted/40">
+                        <TableCell colSpan={10} className="p-3">
+                          <div className="text-xs font-semibold mb-2 text-muted-foreground">36 Head Production from this slitting entry</div>
+                          {loadingHead36 === e.id ? (
+                            <div className="flex items-center justify-center py-3"><Loader2 className="h-4 w-4 animate-spin" /></div>
+                          ) : head36.length === 0 ? (
+                            <p className="text-muted-foreground text-xs italic py-2">No 36 Head production recorded for this slitting entry yet.</p>
+                          ) : (
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead className="text-xs">Date</TableHead>
+                                  <TableHead className="text-xs">Rolls Taken</TableHead>
+                                  <TableHead className="text-xs">Rolls Produced</TableHead>
+                                  <TableHead className="text-xs">Width (mm)</TableHead>
+                                  <TableHead className="text-xs">Length/Tape (mtr)</TableHead>
+                                  <TableHead className="text-xs text-right">Total</TableHead>
+                                  <TableHead className="text-xs">Notes</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {head36.map((h) => (
+                                  <TableRow key={h.id}>
+                                    <TableCell className="text-xs">{format(new Date(h.date), "dd/MM/yy")}</TableCell>
+                                    <TableCell className="text-xs">{h.rolls_taken}</TableCell>
+                                    <TableCell className="text-xs">{h.rolls_produced}</TableCell>
+                                    <TableCell className="text-xs">{h.roll_width_mm ?? "—"}</TableCell>
+                                    <TableCell className="text-xs">{h.length_per_tape_mtr ?? "—"}</TableCell>
+                                    <TableCell className="text-xs text-right font-mono">{h.total_quantity ?? ((h.length_per_tape_mtr ?? 0) * h.rolls_produced)} {h.unit}</TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{h.notes ?? "—"}</TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    </>
                   );
                 })}
               </TableBody>
