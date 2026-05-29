@@ -51,8 +51,29 @@ const computeTotals = (r: SlittingRow) => {
   const kg = gsm > 0 ? (sqm * gsm) / 1000 : 0;
   return { lengthMtr, sqm, kg };
 };
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [head36Map, setHead36Map] = useState<Record<string, Head36Row[]>>({});
+  const [loadingHead36, setLoadingHead36] = useState<string | null>(null);
 
-export default function SlittingHistory() {
+  const toggleExpand = async (entryId: string) => {
+    if (expandedId === entryId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(entryId);
+    if (!head36Map[entryId]) {
+      setLoadingHead36(entryId);
+      const { data } = await supabase
+        .from("head36_entries" as any)
+        .select("id, date, rolls_taken, rolls_produced, roll_width_mm, length_per_tape_mtr, total_quantity, unit, notes")
+        .eq("slitting_entry_id", entryId)
+        .order("date", { ascending: false });
+      setHead36Map((m) => ({ ...m, [entryId]: ((data as unknown) as Head36Row[]) ?? [] }));
+      setLoadingHead36(null);
+    }
+  };
   const { user } = useAuth();
   const { toast } = useToast();
   const [entries, setEntries] = useState<SlittingRow[]>([]);
