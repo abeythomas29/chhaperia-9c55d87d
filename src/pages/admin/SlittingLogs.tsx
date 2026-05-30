@@ -69,6 +69,11 @@ export default function SlittingLogs() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [productFilter, setProductFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [reportEntry, setReportEntry] = useState<SlittingRow | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const { toast } = useToast();
