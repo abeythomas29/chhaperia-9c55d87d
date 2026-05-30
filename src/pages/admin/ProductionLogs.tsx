@@ -365,10 +365,6 @@ export default function ProductionLogs() {
               <TableHead className="text-right">Weight (kg)</TableHead>
               <TableHead className="text-right">GSM</TableHead>
               <TableHead className="text-right">Thickness (mm)</TableHead>
-              <TableHead className="text-right">Tensile</TableHead>
-              <TableHead className="text-right">Elongation</TableHead>
-              <TableHead className="text-right">Swelling Speed</TableHead>
-              <TableHead className="text-right">Swelling Height</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
