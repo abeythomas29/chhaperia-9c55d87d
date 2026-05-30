@@ -251,10 +251,25 @@ export default function SlittingLogs() {
                 {filtered.map((e) => {
                   const t = computeTotals(e);
                   const gsm = e.gsm ?? parseNum(e.notes, "GSM");
+                  const h36s = head36ByEntry[e.id] ?? [];
+                  const has36 = h36s.length > 0;
                   return (
                     <TableRow key={e.id}>
                       <TableCell>{format(new Date(e.date), "dd/MM/yy")}</TableCell>
-                      <TableCell className="font-medium">{e.product_codes?.code ?? "—"}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <span>{e.product_codes?.code ?? "—"}</span>
+                          {has36 && (
+                            <Badge
+                              onClick={() => setHead36Open(e)}
+                              className="cursor-pointer bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                              title="View 36 Head production details"
+                            >
+                              <Layers className="h-3 w-3 mr-1" /> 36
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{managers[e.slitting_manager_id] ?? "—"}</TableCell>
                       <TableCell>{e.cut_width_mm} mm</TableCell>
                       <TableCell className="text-right font-mono">{t.rolls > 0 ? t.rolls.toLocaleString(undefined, { maximumFractionDigits: 0 }) : "—"}</TableCell>
