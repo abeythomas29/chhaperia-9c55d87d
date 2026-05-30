@@ -312,6 +312,66 @@ export default function SlittingLogs() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog open={!!head36Open} onOpenChange={(open) => !open && setHead36Open(null)}>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Layers className="h-5 w-5" /> 36 Head Production —{" "}
+                {head36Open?.product_codes?.code ?? "—"}
+              </DialogTitle>
+              <DialogDescription>
+                Slitting entry dated {head36Open ? format(new Date(head36Open.date), "dd/MM/yy") : ""} ·
+                Cut width {head36Open?.cut_width_mm} mm
+              </DialogDescription>
+            </DialogHeader>
+            {head36Open && (() => {
+              const list = head36ByEntry[head36Open.id] ?? [];
+              if (!list.length) return <p className="text-muted-foreground text-sm">No 36 head production recorded for this slitting entry.</p>;
+              return (
+                <div className="space-y-3">
+                  {list.map((h) => {
+                    const totalLen = (h.length_per_tape_mtr ?? 0) * (h.rolls_produced ?? 0);
+                    const totalSqm = h.roll_width_mm && h.length_per_tape_mtr && h.rolls_produced
+                      ? (h.roll_width_mm * h.length_per_tape_mtr / 1000) * h.rolls_produced
+                      : 0;
+                    return (
+                      <div key={h.id} className="border rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{format(new Date(h.date), "dd/MM/yy")}</span>
+                          <span className="text-xs text-muted-foreground">{head36Operators[h.operator_id] ?? "—"}</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                          <div><span className="text-muted-foreground">Rolls Taken:</span> <span className="font-mono">{h.rolls_taken}</span></div>
+                          <div><span className="text-muted-foreground">Rolls Produced:</span> <span className="font-mono">{h.rolls_produced}</span></div>
+                          <div><span className="text-muted-foreground">Tape Width:</span> <span className="font-mono">{h.roll_width_mm ?? "—"} mm</span></div>
+                          <div><span className="text-muted-foreground">Length/Tape:</span> <span className="font-mono">{h.length_per_tape_mtr ?? "—"} mtr</span></div>
+                          <div><span className="text-muted-foreground">Thickness:</span> <span className="font-mono">{h.thickness_mm ?? "—"} mm</span></div>
+                          <div><span className="text-muted-foreground">GSM:</span> <span className="font-mono">{h.gsm ?? "—"}</span></div>
+                        </div>
+                        <div className="bg-muted rounded p-2 grid grid-cols-2 gap-2 text-center">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Total Length</p>
+                            <p className="font-bold text-primary">{totalLen.toLocaleString(undefined, { maximumFractionDigits: 2 })} mtr</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Total Production</p>
+                            <p className="font-bold text-primary">{totalSqm.toLocaleString(undefined, { maximumFractionDigits: 2 })} sqm</p>
+                          </div>
+                        </div>
+                        {h.notes && <p className="text-xs text-muted-foreground">Notes: {h.notes}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setHead36Open(null)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
       </CardContent>
     </Card>
   );
